@@ -23,6 +23,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/shellhub-io/shellhub v0.0.0-00010101000000-000000000000
 	github.com/sirupsen/logrus v1.4.2
+	github.com/stretchr/testify v1.2.2
 	golang.org/x/crypto v0.0.0-20200317142112-1b76d66859c6 // indirect
 	google.golang.org/grpc v1.29.1 // indirect
 	moul.io/http2curl v1.0.0 // indirect

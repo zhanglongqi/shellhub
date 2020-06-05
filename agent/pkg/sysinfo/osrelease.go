@@ -27,7 +27,7 @@ func GetOSRelease() (*OSRelease, error) {
 	}
 
 	if name == "" {
-		name, err = getValueFromOsRelease("PRETTY_NAME")
+		name, err = getValueFromOsRelease("NAME")
 		if err != nil {
 			return nil, err
 		}
