@@ -46,6 +46,19 @@ const router = new Router({
         import('./../views/Login.vue')
     },
     {
+      path: '/settings',
+      name: 'settings',
+      component: () =>
+        import('./../views/Settings.vue'),
+      children: [
+        {
+          path: 'profile',
+          component: () =>
+            import('./../components/settings/SettingProfile.vue')
+        },
+      ]
+    },
+    {
       path: '*',
       name: 'NotFound',
       component: Dashboard,

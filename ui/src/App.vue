@@ -66,9 +66,10 @@
       <v-chip>
         <v-icon>notifications</v-icon>
       </v-chip>
+
       <v-menu
-        transition="scale-transition"
-        origin="top right"
+        offset-y
+        open-on-hove="10"
       >
         <template v-slot:activator="{ on }">
           <v-chip v-on="on">
@@ -81,28 +82,37 @@
             </v-icon>
           </v-chip>
         </template>
+        <v-list>
+          <v-list-item>
+            <v-list-item-title>
+              Tenant ID
+            </v-list-item-title>
+          </v-list-item>
 
-        <v-card>
-          <v-list-item three-line>
-            <v-list-item-content>
-              <v-list-item-title class="mb-1">
-                Tenant ID
-              </v-list-item-title>
-              <v-list-item-subtitle>
-                <v-chip>
-                  <span>
-                    {{ tenant }}
-                  </span>
-                  <v-icon
-                    v-clipboard="tenant"
-                    v-clipboard:success="() => { copySnack = true; }"
-                    right
-                  >
-                    mdi-content-copy
-                  </v-icon>
-                </v-chip>
-              </v-list-item-subtitle>
-            </v-list-item-content>
+          <v-list-item>
+            <v-list-item-title>
+              <v-chip>
+                <span>
+                  {{ tenant }}
+                </span>
+                <v-icon
+                  v-clipboard="tenant"
+                  v-clipboard:success="() => { copySnack = true; }"
+                  right
+                >
+                  mdi-content-copy
+                </v-icon>
+              </v-chip>
+            </v-list-item-title>
+          </v-list-item>
+
+          <v-list-item
+            v-for="(item, index) in menu"
+            :key="index"
+            router
+            :to="item.path"
+          >
+            <v-list-item-title>{{ item.title }}</v-list-item-title>
           </v-list-item>
 
           <v-card-actions>
@@ -114,7 +124,7 @@
               Logout
             </v-btn>
           </v-card-actions>
-        </v-card>
+        </v-list>
       </v-menu>
     </v-app-bar>
     <v-content>
@@ -159,6 +169,12 @@ export default {
           title: 'Sessions',
           path: '/sessions'
         }
+      ],
+      menu: [
+        {
+          title: 'Settings',
+          path: '/settings/profile'
+        },
       ]
     };
   },
