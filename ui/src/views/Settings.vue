@@ -1,34 +1,52 @@
 <template>
-  <div class="all-content">
-    <div class="content-left">
-      <v-navigation-drawer
-        floating
-        permanent
-        absolute
+  <v-container>
+    <v-row no-gutters>
+      <v-col
+        cols="auto"
       >
-        <v-list>
-          <v-list-item
-            v-for="item in items"
-            :key="item.title"
-            :to="item.path"
-            two-line
+        <v-card
+          class="pa-2"
+          tile
+          :elevation="0"
+        >
+          <v-navigation-drawer
+            floating
+            permanent
           >
-            <v-list-item-content>
-              <v-list-item-title v-text="item.title" />
-            </v-list-item-content>
-          </v-list-item>
-        </v-list>
-      </v-navigation-drawer>
-    </div>
-    <div class="content-right">
-      <v-container
-        class="pa-8"
-        fluid
+            <v-list>
+              <v-list-item
+                v-for="item in items"
+                :key="item.title"
+                :to="item.path"
+                two-line
+              >
+                <v-list-item-content>
+                  <v-list-item-title v-text="item.title" />
+                </v-list-item-content>
+              </v-list-item>
+            </v-list>
+          </v-navigation-drawer>
+        </v-card>
+      </v-col>
+
+      <v-col 
+        cols="auto"
       >
-        <router-view />
-      </v-container>
-    </div>
-  </div>
+        <v-card
+          class="pa-2"
+          tile
+          :elevation="0"
+        >
+          <v-container
+            class=""
+            fluid
+          >
+            <router-view />
+          </v-container>
+        </v-card>
+      </v-col>
+    </v-row>
+  </v-container>
 </template>
 
 <script>
@@ -51,14 +69,3 @@ export default {
   },
 };
 </script>
-
-<style lang="stylus" scoped>
-  .content-left{
-    float: left;
-    width: 30%;
-  }
-  .content-right{
-    float: right;
-    width: 70%;
-  }
-</style>
