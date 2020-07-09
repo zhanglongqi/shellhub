@@ -111,7 +111,6 @@
             v-for="(item, index) in menu"
             :key="index"
             router
-            :to="item.path"
             @click.prevent="triggerClick(item)"
           >
             <v-list-item-title>
@@ -183,6 +182,14 @@ export default {
       ],
       menu: [
         {
+          title: 'Settings',
+          type: 'path',
+          path: '/settings',
+          items: [
+            { title: 'Profile', path: '/settings/profile' },
+          ],
+        },
+        {
           title: 'Logout',
           type: 'method',
           method: 'logout',
@@ -222,10 +229,6 @@ export default {
       default:
         break;
       }
-    },
-    redirect(path) {
-      // eslint-disable-next-line no-console
-      this.$router.push(path);
     },
   },
 };
