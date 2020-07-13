@@ -840,6 +840,34 @@ func (s *Store) GetRecord(ctx context.Context, uid models.UID) ([]models.Recorde
 	return sessionRecord, count, nil
 }
 
+func (s *Store) UpdateUser(ctx context.Context, username, email, password, tenant string) error {
+    user, err := s.GetUserByTenant(ctx, tenant)
+
+    if err != nil {
+        return err
+    }
+
+    if username != user.Username && username!="" {
+			if _, err := s.db.Collection("users").UpdateOne(ctx, bson.M{"tenant_id": tenant}, bson.M{"$set": bson.M{"username": username}}); err!= nil {
+				return err
+			}
+    }
+
+    if email != user.Email && email!="" {
+			if _, err := s.db.Collection("users").UpdateOne(ctx, bson.M{"tenant_id": tenant}, bson.M{"$set": bson.M{"email": email}}); err!= nil {
+				return err
+			}
+		}
+
+    if password!="" {
+			if _, err := s.db.Collection("users").UpdateOne(ctx, bson.M{"tenant_id": tenant}, bson.M{"$set": bson.M{"password": password}}); err!= nil {
+					return err
+				}
+			}
+
+    return nil
+}
+
 func buildFilterQuery(filters []models.Filter) ([]bson.M, error) {
 	var queryMatch []bson.M
 	var queryFilter []bson.M
