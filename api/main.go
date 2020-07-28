@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/kelseyhightower/envconfig"
 	"github.com/labstack/echo"
@@ -20,6 +21,11 @@ type config struct {
 }
 
 func main() {
+	echo.NotFoundHandler = func(c echo.Context) error {
+		// render your 404 page
+		return c.String(http.StatusNotFound, "404 not found page")
+	}
+
 	e := echo.New()
 	e.Use(middleware.Logger())
 
