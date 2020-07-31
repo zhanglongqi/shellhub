@@ -5,12 +5,12 @@ import (
 )
 
 type User struct {
-	Name     string `json:"name"`
+	Name     string `json:"name"  bson:",omitempty"`
 	Email    string `json:"email" bson:",omitempty" validate:"email"`
 	Username string `json:"username" bson:",omitempty"`
 	Password string `json:"password" bson:",omitempty"`
-	TenantID string `json:"tenant_id" bson:"tenant_id"`
-	}
+	TenantID string `json:"tenant_id" bson:",omitempty"`
+}
 
 type UserAuthRequest struct {
 	Username string `json:"username"`
