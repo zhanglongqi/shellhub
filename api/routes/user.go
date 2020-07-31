@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"github.com/shellhub-io/shellhub/api/apicontext"
 	"github.com/shellhub-io/shellhub/api/user"
+	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
 const (
@@ -15,11 +16,14 @@ const (
 
 func UpdateUser(c apicontext.Context) error {
 
-	var req struct {
+	/*var req struct {
 		Username string `json:"username"`
 		Email    string `json:"email"`
 		Password string `json:"password"`
-	}
+	}*/
+
+	var req models.User
+
 	if err := c.Bind(&req); err != nil {
 		return err
 	}
@@ -36,7 +40,7 @@ func UpdateUser(c apicontext.Context) error {
 
 	svc := user.NewService(c.Store())
 
-	if err := svc.UpdateDataUser(c.Ctx(), req.Username, req.Email, req.Password, tenant); err != nil {
+	if err := svc.UpdateDataUser(c.Ctx(), req, tenant); err != nil {
 		if err == user.ErrUnauthorized {
 			return c.NoContent(http.StatusForbidden)
 		}
