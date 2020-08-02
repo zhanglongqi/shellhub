@@ -78,12 +78,23 @@ jobs:
         env:
           DOCKER_CLI_EXPERIMENTAL: enabled
         run: |
-            docker manifest create -a shellhubio/agent:${{ github.sha }} shellhubio/agent:${{ github.sha }}-amd64 shellhubio/agent:${{ github.sha }}-arm32v6 shellhubio/agent:${{ github.sha }}-arm32v7 shellhubio/agent:${{ github.sha }}-arm64v8 \
-            && docker manifest annotate shellhubio/agent:${{ github.sha }} shellhubio/agent:${{ github.sha }}-amd64 --os linux --arch amd64 \
-            && docker manifest annotate shellhubio/agent:${{ github.sha }} shellhubio/agent:${{ github.sha }}-arm32v6 --os linux --arch arm --variant v6 \
-            && docker manifest annotate shellhubio/agent:${{ github.sha }} shellhubio/agent:${{ github.sha }}-arm32v7 --os linux --arch arm --variant v7 \
-            && docker manifest annotate shellhubio/agent:${{ github.sha }} shellhubio/agent:${{ github.sha }}-arm64v8 --os linux --arch arm64 --variant v8 \
-            && docker manifest push shellhubio/agent:${{ github.sha }}
+            echo "Creating the manifest"
+            docker manifest create -a shellhubio/agent:${{ github.sha }} shellhubio/agent:${{ github.sha }}-amd64 shellhubio/agent:${{ github.sha }}-arm32v6 shellhubio/agent:${{ github.sha }}-arm32v7 shellhubio/agent:${{ github.sha }}-arm64v8
+
+            echo "Running amd64 manifest annotation"
+            docker manifest annotate shellhubio/agent:${{ github.sha }} shellhubio/agent:${{ github.sha }}-amd64 --os linux --arch amd64
+          
+            archname=(arm32v6 arm32v7 arm64v8)
+            arch=(arm arm arm64)
+            variant=(6 7 8)
+            
+            for ((i = 0; i < 3; i++))  ; do
+              echo "Running ${archname[i]} manifest annotation"
+              docker manifest annotate shellhubio/agent:${{ github.sha }} shellhubio/agent:${{ github.sha }}-${archname[i]} --os linux --arch ${arch[i]} --variant ${variant[i]}
+            done
+            
+            echo "Pushing multiarch manifest"
+            docker manifest push shellhubio/agent:${{ github.sha }}
 
 
       - name: build multiarch image from github tag
@@ -91,9 +102,20 @@ jobs:
         env:
           DOCKER_CLI_EXPERIMENTAL: enabled
         run: |
-          docker manifest create -a shellhubio/agent:${{ env.RELEASE_VERSION }} shellhubio/agent:${{ env.RELEASE_VERSION }}-amd64 shellhubio/agent:${{ env.RELEASE_VERSION }}-arm32v6 shellhubio/agent:${{ env.RELEASE_VERSION }}-arm32v7 shellhubio/agent:${{ env.RELEASE_VERSION }}-arm64v8 \
-            && docker manifest annotate shellhubio/agent:${{ env.RELEASE_VERSION }} shellhubio/agent:${{ env.RELEASE_VERSION }}-amd64 --os linux --arch amd64 \
-            && docker manifest annotate shellhubio/agent:${{ env.RELEASE_VERSION }} shellhubio/agent:${{ env.RELEASE_VERSION }}-arm32v6 --os linux --arch arm --variant v6 \
-            && docker manifest annotate shellhubio/agent:${{ env.RELEASE_VERSION }} shellhubio/agent:${{ env.RELEASE_VERSION }}-arm32v7 --os linux --arch arm --variant v7 \
-            && docker manifest annotate shellhubio/agent:${{ env.RELEASE_VERSION }} shellhubio/agent:${{ env.RELEASE_VERSION }}-arm64v8 --os linux --arch arm64 --variant v8 \
-            && docker manifest push shellhubio/agent:${{ env.RELEASE_VERSION }}
+            echo "Creating the manifest"
+            docker manifest create -a shellhubio/agent:${{ env.RELEASE_VERSION }} shellhubio/agent:${{ env.RELEASE_VERSION }}-amd64 shellhubio/agent:${{ env.RELEASE_VERSION }}-arm32v6 shellhubio/agent:${{ env.RELEASE_VERSION }}-arm32v7 shellhubio/agent:${{ env.RELEASE_VERSION }}-arm64v8
+
+            echo "Running amd64 manifest annotation"
+            docker manifest annotate shellhubio/agent:${{ env.RELEASE_VERSION }} shellhubio/agent:${{ env.RELEASE_VERSION }}-amd64 --os linux --arch amd64
+          
+            archname=(arm32v6 arm32v7 arm64v8)
+            arch=(arm arm arm64)
+            variant=(6 7 8)
+            
+            for ((i = 0; i < 3; i++))  ; do
+              echo "Running ${archname[i]} manifest annotation"
+              docker manifest annotate shellhubio/agent:${{ env.RELEASE_VERSION }} shellhubio/agent:${{ env.RELEASE_VERSION }}-${archname[i]} --os linux --arch ${arch[i]} --variant ${variant[i]}
+            done
+            
+            echo "Pushing multiarch manifest"
+            docker manifest push shellhubio/agent:${{ env.RELEASE_VERSION }}
