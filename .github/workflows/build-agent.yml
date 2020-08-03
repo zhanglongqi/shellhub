@@ -89,7 +89,7 @@ jobs:
             
             for ((i = 0; i < 3; i++))  ; do
               echo "Running ${archname[i]} manifest annotation"
-              docker manifest annotate shellhubio/agent:${{ github.sha }} shellhubio/agent:${{ github.sha }}-${archname[i]} --os linux --arch ${arch[i]} --variant ${variant[i]}
+              docker manifest annotate shellhubio/agent:${{ github.sha }} shellhubio/agent:${{ github.sha }}-${archname[i]} --os linux --arch ${arch[i]} --variant v${variant[i]}
             done
             
             echo "Pushing multiarch manifest"
@@ -112,7 +112,7 @@ jobs:
             
             for ((i = 0; i < 3; i++))  ; do
               echo "Running ${archname[i]} manifest annotation"
-              docker manifest annotate shellhubio/agent:${{ env.RELEASE_VERSION }} shellhubio/agent:${{ env.RELEASE_VERSION }}-${archname[i]} --os linux --arch ${arch[i]} --variant ${variant[i]}
+              docker manifest annotate shellhubio/agent:${{ env.RELEASE_VERSION }} shellhubio/agent:${{ env.RELEASE_VERSION }}-${archname[i]} --os linux --arch ${arch[i]} --variant v${variant[i]}
             done
             
             echo "Pushing multiarch manifest"
