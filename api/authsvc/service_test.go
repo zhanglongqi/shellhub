@@ -48,8 +48,6 @@ func TestAuthDevice(t *testing.T) {
 
 	user := &models.User{Username: "user", TenantID: authReq.TenantID}
 
-	mock.On("GetDeviceByMac", ctx, device.Identity.MAC, device.TenantID).
-		Return(nil, nil).Once()
 	mock.On("AddDevice", ctx, *device).
 		Return(nil).Once()
 	mock.On("UpdateDeviceStatus", ctx, models.UID(device.UID), true).
