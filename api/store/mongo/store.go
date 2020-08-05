@@ -3,6 +3,7 @@ package mongo
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -670,12 +671,18 @@ func (s *Store) GetUserByTenant(ctx context.Context, tenant string) (*models.Use
 	return user, nil
 }
 
-func (s *Store) GetDeviceByMac(ctx context.Context, mac, tenant string) (*models.Device, error) {
+func (s *Store) GetDeviceByMac(ctx context.Context, mac, tenant, status string) (*models.Device, error) {
 	device := new(models.Device)
-	if err := s.db.Collection("devices").FindOne(ctx, bson.M{"tenant_id": tenant, "identity": bson.M{"mac": mac}}).Decode(&device); err != nil {
-		return nil, err
+	if status != "" {
+		if err := s.db.Collection("devices").FindOne(ctx, bson.M{"tenant_id": tenant, "identity": bson.M{"mac": mac}, "status": status}).Decode(&device); err != nil {
+			return nil, err
+		}
+	} else {
+		if err := s.db.Collection("devices").FindOne(ctx, bson.M{"tenant_id": tenant, "identity": bson.M{"mac": mac}}).Decode(&device); err != nil {
+			return nil, err
+		}
 	}
-
+	fmt.Printf("%+v", device)
 	return device, nil
 }
 
@@ -838,6 +845,13 @@ func (s *Store) GetRecord(ctx context.Context, uid models.UID) ([]models.Recorde
 		return nil, 0, err
 	}
 	return sessionRecord, count, nil
+}
+
+func (s *Store) UpdateUID(ctx context.Context, oldUID models.UID, newUID models.UID) error {
+
+	_, err := s.db.Collection("sessions").UpdateMany(ctx, bson.M{"device_uid": oldUID}, bson.M{"$set": bson.M{"device_uid": newUID}})
+	return err
+
 }
 
 func buildFilterQuery(filters []models.Filter) ([]bson.M, error) {
