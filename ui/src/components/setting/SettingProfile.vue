@@ -243,6 +243,7 @@ export default {
       };
 
       this.$store.dispatch('users/put', data);
+      this.$store.dispatch('auth/changeUserData', data);
 
       this.enableEdit();
     },

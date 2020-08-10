@@ -48,6 +48,11 @@ export default {
       Vue.set(state, 'tenant', '');
       Vue.set(state, 'email', '');
     },
+
+    changeData(state, data) {
+      Vue.set(state, 'user', data.username);
+      Vue.set(state, 'email', data.email);
+    },
   },
 
   actions: {
@@ -95,6 +100,12 @@ export default {
       localStorage.removeItem('tenant');
       localStorage.removeItem('onceWelcome');
       localStorage.removeItem('email');
+    },
+
+    changeUserData(context, data) {
+      localStorage.setItem('user', data.username);
+      localStorage.setItem('email', data.email);
+      context.commit('changeData', data);
     },
   },
 };
