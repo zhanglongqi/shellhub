@@ -35,4 +35,7 @@ $SUDO docker run -d \
        {% if keepalive_interval ~= '' and keepalive_interval ~= nil then %}
        -e KEEPALIVE_INTERVAL={{keepalive_interval}} \
        {% end %}
+       {% if device_name ~= '' and device_name ~= nil then %}
+       -e DEVICE_NAME={{device_name}}
+       {% end %}
        shellhubio/agent:{{version}}
