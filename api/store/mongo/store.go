@@ -840,7 +840,7 @@ func (s *Store) GetRecord(ctx context.Context, uid models.UID) ([]models.Recorde
 	return sessionRecord, count, nil
 }
 
-func (s *Store) UpdateUser(ctx context.Context, username, email, password, tenant string) error {
+func (s *Store) UpdateUser(ctx context.Context, username, email, oldpassword, newpassword, tenant string) error {
     user, err := s.GetUserByTenant(ctx, tenant)
 
     if err != nil {
@@ -859,8 +859,8 @@ func (s *Store) UpdateUser(ctx context.Context, username, email, password, tenan
 			}
 		}
 
-    if password!="" {
-			if _, err := s.db.Collection("users").UpdateOne(ctx, bson.M{"tenant_id": tenant}, bson.M{"$set": bson.M{"password": password}}); err!= nil {
+    if newpassword!="" && user.Password == oldpassword{
+			if _, err := s.db.Collection("users").UpdateOne(ctx, bson.M{"tenant_id": tenant}, bson.M{"$set": bson.M{"password": newpassword}}); err!= nil {
 					return err
 				}
 			}

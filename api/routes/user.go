@@ -17,7 +17,9 @@ func UpdateUser(c apicontext.Context) error {
 	var req struct {
 		Username string `json:"username"`
 		Email    string `json:"email"`
-		Password string `json:"password"`
+		OldPassword string `json:"oldPassword"`
+		NewPassword string `json: "newPassword"`
+
 	}
 	if err := c.Bind(&req); err != nil {
 		return err
@@ -27,15 +29,20 @@ func UpdateUser(c apicontext.Context) error {
 	if v := c.Tenant(); v != nil {
 		tenant = v.ID
 	}
-	if req.Password != "" {
-		sum := sha256.Sum256([]byte(req.Password))
+	if req.OldPassword != "" {
+		sum := sha256.Sum256([]byte(req.OldPassword))
 		sumByte:= sum[:]
-		req.Password = hex.EncodeToString(sumByte)
+		req.OldPassword = hex.EncodeToString(sumByte)
+	}
+	if req.NewPassword!= "" {
+		sum := sha256.Sum256([]byte(req.NewPassword))
+		sumByte:= sum[:]
+		req.NewPassword = hex.EncodeToString(sumByte)
 	}
 
 	svc := user.NewService(c.Store())
 
-	if err := svc.UpdateDataUser(c.Ctx(), req.Username, req.Email, req.Password, tenant); err != nil {
+	if err := svc.UpdateDataUser(c.Ctx(), req.Username, req.Email, req.OldPassword, req.NewPassword, tenant); err != nil {
 		if err == user.ErrUnauthorized {
 			return c.NoContent(http.StatusForbidden)
 		}
