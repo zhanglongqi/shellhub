@@ -32,6 +32,7 @@ type ConfigOptions struct {
 	PrivateKey        string `envconfig:"private_key"`
 	TenantID          string `envconfig:"tenant_id"`
 	KeepAliveInterval int    `envconfig:"keepalive_interval" default:"30"`
+	DeviceName        string `envconfig:"device_name"`
 }
 
 type Information struct {
@@ -184,6 +185,7 @@ func main() {
 			Info:     agent.Info,
 			Sessions: sessions,
 			DeviceAuth: &models.DeviceAuth{
+				Name:      opts.DeviceName,
 				Identity:  agent.Identity,
 				TenantID:  opts.TenantID,
 				PublicKey: string(keygen.EncodePublicKeyToPem(agent.pubKey)),
