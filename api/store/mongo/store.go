@@ -859,7 +859,7 @@ func (s *Store) UpdateUser(ctx context.Context, username, email, oldpassword, ne
 			}
 		}
 
-    if newpassword!="" && user.Password == oldpassword{
+    if newpassword!="" {
 			if _, err := s.db.Collection("users").UpdateOne(ctx, bson.M{"tenant_id": tenant}, bson.M{"$set": bson.M{"password": newpassword}}); err!= nil {
 					return err
 				}
