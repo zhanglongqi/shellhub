@@ -1,4 +1,9 @@
-import { required, integer, email } from 'vee-validate/dist/rules';
+import {
+  required,
+  integer,
+  email,
+  confirmed,
+} from 'vee-validate/dist/rules';
 import { extend } from 'vee-validate';
 import isValidHostname from 'is-valid-hostname';
 
@@ -27,4 +32,9 @@ extend('password', (value) => {
     return 'Your password should be 5-30 characters long';
   }
   return true;
+});
+
+extend('confirmed', {
+  ...confirmed,
+  message: 'The passwords do not match',
 });

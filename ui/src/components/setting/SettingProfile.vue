@@ -131,10 +131,44 @@
                 v-slot="{ errors }"
                 name="Priority"
                 rules="required|password"
+                vid="newPassword"
               >
                 <v-text-field
-                  v-model="password"
-                  label="password"
+                  v-model="oldPassword"
+                  type="password"
+                  label="Old password"
+                  class="mb-4"
+                  :error-messages="errors"
+                  required
+                  :disabled="!editPasswordStatus"
+                />
+              </ValidationProvider>
+
+              <ValidationProvider
+                v-slot="{ errors }"
+                name="Priority"
+                rules="required|password"
+                vid="newPassword"
+              >
+                <v-text-field
+                  v-model="newPassword"
+                  type="password"
+                  label="New password"
+                  class="mb-4"
+                  :error-messages="errors"
+                  required
+                  :disabled="!editPasswordStatus"
+                />
+              </ValidationProvider>
+
+              <ValidationProvider
+                v-slot="{ errors }"
+                rules="required|confirmed:newPassword"
+                name="confirm"
+              >
+                <v-text-field
+                  v-model="newPasswordConfirm"
+                  label="Confirm new password"
                   type="password"
                   class="mb-4"
                   :error-messages="errors"
@@ -149,7 +183,7 @@
                 outlined
                 @click="editPasswordStatus = !editPasswordStatus"
               >
-                Change Data
+                Change Password
               </v-btn>
 
               <div
@@ -204,7 +238,9 @@ export default {
     return {
       username: '',
       email: '',
-      password: '',
+      oldPassword: '',
+      newPassword: '',
+      newPasswordConfirm: '',
       editDataStatus: false,
       editPasswordStatus: false,
       show: false,
