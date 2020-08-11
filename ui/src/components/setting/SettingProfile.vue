@@ -286,7 +286,8 @@ export default {
 
     updatePassword() {
       const data = {
-        password: this.password,
+        oldPassword: this.oldPassword,
+        newPassword: this.newPassword,
       };
 
       this.$store.dispatch('users/put', data);
