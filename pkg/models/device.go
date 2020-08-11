@@ -33,6 +33,7 @@ type DeviceAuthRequest struct {
 }
 
 type DeviceAuth struct {
+	Name      string          `json:name,omitempty"`
 	Identity  *DeviceIdentity `json:"identity"`
 	PublicKey string          `json:"public_key"`
 	TenantID  string          `json:"tenant_id"`

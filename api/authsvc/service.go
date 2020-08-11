@@ -57,7 +57,7 @@ func (s *service) AuthDevice(ctx context.Context, req *models.DeviceAuthRequest)
 		return nil, errors.New("device with this mac address already authored")
 	}
 
-	if err := s.store.AddDevice(ctx, device); err != nil {
+	if err := s.store.AddDevice(ctx, device, req.DeviceAuth.Name); err != nil {
 		return nil, err
 	}
 
