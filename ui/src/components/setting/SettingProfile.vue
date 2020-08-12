@@ -284,14 +284,18 @@ export default {
       this.enableEdit();
     },
 
-    updatePassword() {
+    async updatePassword() {
       const data = {
         oldPassword: this.oldPassword,
         newPassword: this.newPassword,
       };
 
-      this.$store.dispatch('users/put', data);
-
+      try {
+        await this.$store.dispatch('users/put', data);
+        console.log('Switched passwords sucessfully!');
+      } catch {
+        console.log('Your old password is wrong');
+      }
       this.enableEdit();
     },
   },

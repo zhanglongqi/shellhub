@@ -14,12 +14,7 @@ export default {
 
   actions: {
     async put(context, data) {
-      try {
-        await putUser(data);
-      } catch (err) {
-        console.log('Deu ruim!');
-        throw err;
-      }
+      await putUser(data);
     },
   },
 };
