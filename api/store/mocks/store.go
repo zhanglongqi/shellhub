@@ -589,13 +589,13 @@ func (_m *Store) UpdatePendingStatus(ctx context.Context, uid models.UID, status
 	return r0
 }
 
-// UpdateUser provides a mock function with given fields: ctx, username, email, password, tenant
-func (_m *Store) UpdateUser(ctx context.Context, username string, email string, password string, tenant string) error {
-	ret := _m.Called(ctx, username, email, password, tenant)
+// UpdateUser provides a mock function with given fields: ctx, username, email, oldpassword, newpassword, tenant
+func (_m *Store) UpdateUser(ctx context.Context, username string, email string, oldpassword string, newpassword string, tenant string) error {
+	ret := _m.Called(ctx, username, email, oldpassword, newpassword, tenant)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, string) error); ok {
-		r0 = rf(ctx, username, email, password, tenant)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, string, string) error); ok {
+		r0 = rf(ctx, username, email, oldpassword, newpassword, tenant)
 	} else {
 		r0 = ret.Error(0)
 	}
