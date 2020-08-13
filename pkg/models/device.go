@@ -33,7 +33,7 @@ type DeviceAuthRequest struct {
 }
 
 type DeviceAuth struct {
-	Name      string          `json:name,omitempty"`
+	Name      string          `json:name,omitempty"  validate:"hostname_rfc1123"`
 	Identity  *DeviceIdentity `json:"identity"`
 	PublicKey string          `json:"public_key"`
 	TenantID  string          `json:"tenant_id"`
