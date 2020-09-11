@@ -74,7 +74,6 @@
             >
               <WelcomeSecondScreen
                 :command="command()"
-                @expClip="receiveClip"
               />
             </v-card>
             <v-card-actions>
@@ -104,12 +103,6 @@
                 Next
               </v-btn>
             </v-card-actions>
-            <v-snackbar
-              v-model="copy"
-              :timeout="3000"
-            >
-              Command copied to clipboard
-            </v-snackbar>
           </v-stepper-content>
 
           <v-stepper-content step="3">
@@ -142,12 +135,6 @@
                 Accept
               </v-btn>
             </v-card-actions>
-            <v-snackbar
-              v-model="copy"
-              :timeout="3000"
-            >
-              Command copied to clipboard
-            </v-snackbar>
           </v-stepper-content>
 
           <v-stepper-content step="4">
@@ -206,7 +193,6 @@ export default {
   data() {
     return {
       e1: 1,
-      copy: false,
       enable: false,
       polling: null,
       trigger: null,
@@ -230,10 +216,6 @@ export default {
   },
 
   methods: {
-    receiveClip(params) {
-      this.copy = params;
-    },
-
     beforeDestroy() {
       clearInterval(this.polling);
     },
@@ -251,10 +233,14 @@ export default {
 
     pollingDevices() {
       this.polling = setInterval(async () => {
-        await this.$store.dispatch('stats/get', {});
-        this.enable = this.checkDevice();
-        if (this.enable) {
-          this.e1 = 3;
+        try {
+          await this.$store.dispatch('stats/get', {});
+          this.enable = this.checkDevice();
+          if (this.enable) {
+            this.e1 = 3;
+          }
+        } catch {
+          this.$store.dispatch('modals/showSnackbarErrorDefault');
         }
       }, 3000);
     },
@@ -265,12 +251,16 @@ export default {
 
     acceptDevice() {
       const device = this.$store.getters['devices/getFirstPending'];
-      this.$store.dispatch('devices/accept', device.uid);
+      try {
+        this.$store.dispatch('devices/accept', device.uid);
 
-      this.$store.dispatch('notifications/fetch');
-      this.$store.dispatch('stats/get');
+        this.$store.dispatch('notifications/fetch');
+        this.$store.dispatch('stats/get');
 
-      this.e1 = 4;
+        this.e1 = 4;
+      } catch {
+        this.$store.dispatch('modals/showSnackbarErrorAction', this.$errors.deviceAccepting);
+      }
     },
   },
 };

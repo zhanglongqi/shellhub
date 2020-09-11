@@ -110,7 +110,11 @@ export default {
 
   methods: {
     getNotifications() {
-      this.$store.dispatch('notifications/fetch');
+      try {
+        this.$store.dispatch('notifications/fetch');
+      } catch {
+        this.$store.dispatch('modals/showSnackbarErrorLoading', this.$errors.notificationList);
+      }
     },
 
     refresh() {

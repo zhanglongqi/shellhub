@@ -13,10 +13,10 @@ describe('SessionPlay', () => {
   const store = new Vuex.Store({
     namespaced: true,
     state: {
-      logSession: [],
+      session: [],
     },
     getters: {
-      'sessions/getLogSession': (state) => state.logSession,
+      'sessions/get': (state) => state.session,
     },
     actions: {
       'sessions/getLogSession': () => {
@@ -30,6 +30,9 @@ describe('SessionPlay', () => {
       localVue,
       stubs: ['fragment'],
       propsData: { uid, recorded },
+      mocks: {
+        $env: (isHosted) => isHosted,
+      },
     });
   });
 

@@ -8,7 +8,7 @@
       outlined
       text
     >
-      The request has failed, please try again.
+      {{ message }}
     </v-snackbar>
   </fragment>
 </template>
@@ -18,15 +18,39 @@
 export default {
   name: 'SnackbarError',
 
+  props: {
+    typeMessage: {
+      type: String,
+      required: true,
+    },
+
+    mainContent: {
+      type: String,
+      default: '',
+      required: false,
+    },
+  },
+
   computed: {
     snackbar: {
       get() {
         return this.$store.getters['modals/snackbarError'];
       },
 
-      set(value) {
-        this.$store.dispatch('modals/showSnackbarError', value);
+      set() {
+        this.$store.dispatch('modals/unsetShowStatusSnackbarError');
       },
+    },
+
+    message() {
+      switch (this.typeMessage) {
+      case 'loading':
+        return `Loading the ${this.mainContent} has failed, please try again.`;
+      case 'action':
+        return `The ${this.mainContent} request has failed, please try again.`;
+      default:
+        return 'The request has failed, please try again.';
+      }
     },
   },
 };

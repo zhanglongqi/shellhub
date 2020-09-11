@@ -68,8 +68,13 @@ export default {
 
   methods: {
     async remove() {
-      await this.$store.dispatch('firewallrules/remove', this.id);
-      this.dialog = false;
+      try {
+        await this.$store.dispatch('firewallrules/remove', this.id);
+        this.$store.dispatch('modals/showSnackbarSuccessAction', this.$success.firewallRuleDeleting);
+        this.dialog = false;
+      } catch {
+        this.$store.dispatch('modals/showSnackbarErrorAction', this.$errors.firewallRuleDeleting);
+      }
     },
   },
 };

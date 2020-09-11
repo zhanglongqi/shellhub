@@ -15,11 +15,13 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"gopkg.in/go-playground/validator.v9"
 )
 
 type Service interface {
 	AuthDevice(ctx context.Context, req *models.DeviceAuthRequest) (*models.DeviceAuthResponse, error)
 	AuthUser(ctx context.Context, req models.UserAuthRequest) (*models.UserAuthResponse, error)
+	AuthGetToken(ctx context.Context, tenant string) (*models.UserAuthResponse, error)
 	PublicKey() *rsa.PublicKey
 }
 
@@ -52,12 +54,14 @@ func (s *service) AuthDevice(ctx context.Context, req *models.DeviceAuthRequest)
 		TenantID:  req.TenantID,
 		LastSeen:  time.Now(),
 	}
-	sameMacDev, err := s.store.GetDeviceByMac(ctx, device.Identity.MAC, device.TenantID)
-	if sameMacDev != nil && sameMacDev.UID != device.UID {
-		return nil, errors.New("device with this mac address already authored")
-	}
 
-	if err := s.store.AddDevice(ctx, device); err != nil {
+	validate := validator.New()
+	if err := validate.Struct(req); err != nil {
+		return nil, err
+	}
+	hostname := strings.ToLower(req.DeviceAuth.Hostname)
+
+	if err := s.store.AddDevice(ctx, device, hostname); err != nil {
 		return nil, err
 	}
 
@@ -134,10 +138,43 @@ func (s *service) AuthUser(ctx context.Context, req models.UserAuthRequest) (*mo
 			Name:   user.Name,
 			User:   user.Username,
 			Tenant: user.TenantID,
+			Email:  user.Email,
 		}, nil
 	}
 
 	return nil, errors.New("unauthorized")
+}
+
+func (s *service) AuthGetToken(ctx context.Context, tenant string) (*models.UserAuthResponse, error) {
+	user, err := s.store.GetUserByTenant(ctx, tenant)
+	if err != nil {
+		return nil, err
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodRS256, models.UserAuthClaims{
+		Username: user.Username,
+		Admin:    true,
+		Tenant:   user.TenantID,
+		AuthClaims: models.AuthClaims{
+			Claims: "user",
+		},
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(time.Hour * 72).Unix(),
+		},
+	})
+
+	tokenStr, err := token.SignedString(s.privKey)
+	if err != nil {
+		return nil, err
+	}
+
+	return &models.UserAuthResponse{
+		Token:  tokenStr,
+		Name:   user.Name,
+		User:   user.Username,
+		Tenant: user.TenantID,
+		Email:  user.Email,
+	}, nil
 }
 
 func (s *service) PublicKey() *rsa.PublicKey {

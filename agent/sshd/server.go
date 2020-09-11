@@ -4,21 +4,16 @@ import (
 	"C"
 	"fmt"
 	"io"
+	"net"
 	"os"
 	"os/exec"
-	"syscall"
-	"unsafe"
-
-	sshserver "github.com/gliderlabs/ssh"
-	"github.com/kr/pty"
-	"github.com/shellhub-io/shellhub/agent/pkg/osauth"
-	"github.com/sirupsen/logrus"
-)
-
-import (
-	"net"
+	"strconv"
 	"sync"
 	"time"
+
+	sshserver "github.com/gliderlabs/ssh"
+	"github.com/shellhub-io/shellhub/agent/pkg/osauth"
+	"github.com/sirupsen/logrus"
 )
 
 type sshConn struct {
@@ -32,7 +27,7 @@ func (c *sshConn) Close() error {
 	return c.Conn.Close()
 }
 
-type SSHServer struct {
+type Server struct {
 	sshd              *sshserver.Server
 	cmds              map[string]*exec.Cmd
 	Sessions          map[string]net.Conn
@@ -41,17 +36,15 @@ type SSHServer struct {
 	keepAliveInterval int
 }
 
-func NewSSHServer(privateKey string, keepAliveInterval int) *SSHServer {
-	s := &SSHServer{
+func NewServer(privateKey string, keepAliveInterval int) *Server {
+	s := &Server{
 		cmds:              make(map[string]*exec.Cmd),
 		Sessions:          make(map[string]net.Conn),
 		keepAliveInterval: keepAliveInterval,
 	}
 
 	s.sshd = &sshserver.Server{
-		PasswordHandler: func(ctx sshserver.Context, pass string) bool {
-			return osauth.AuthUser(ctx.User(), pass)
-		},
+		PasswordHandler:  s.passwordHandler,
 		PublicKeyHandler: s.publicKeyHandler,
 		Handler:          s.sessionHandler,
 		RequestHandlers:  sshserver.DefaultRequestHandlers,
@@ -76,82 +69,78 @@ func NewSSHServer(privateKey string, keepAliveInterval int) *SSHServer {
 	return s
 }
 
-func (s *SSHServer) ListenAndServe() error {
+func (s *Server) ListenAndServe() error {
 	return s.sshd.ListenAndServe()
 }
 
-func (s *SSHServer) HandleConn(conn net.Conn) {
+func (s *Server) HandleConn(conn net.Conn) {
 	s.sshd.HandleConn(conn)
 }
 
-func (s *SSHServer) SetDeviceName(name string) {
+func (s *Server) SetDeviceName(name string) {
 	s.deviceName = name
 }
 
-func (s *SSHServer) sessionHandler(session sshserver.Session) {
+func (s *Server) sessionHandler(session sshserver.Session) {
 	sspty, winCh, isPty := session.Pty()
 
-	go func() {
-		ticker := time.NewTicker(time.Second * time.Duration(s.keepAliveInterval))
-		defer ticker.Stop()
+	log := logrus.WithFields(logrus.Fields{
+		"user": session.User(),
+		"pty":  isPty,
+	})
 
-	loop:
-		for {
-			select {
-			case <-ticker.C:
-				_, err := session.SendRequest("keepalive@ssh.shellhub.io", false, nil)
-				if err != nil {
-					return
-				}
-			case <-session.Context().Done():
-				ticker.Stop()
-				break loop
-			}
-		}
-	}()
+	log.Info("New session request")
+
+	go StartKeepAliveLoop(time.Second*time.Duration(s.keepAliveInterval), session)
 
 	if isPty {
 		scmd := newShellCmd(s, session.User(), sspty.Term)
 
-		spty, err := pty.Start(scmd)
+		pts, err := startPty(scmd, session, winCh)
 		if err != nil {
 			logrus.Warn(err)
 		}
 
-		go func() {
-			for win := range winCh {
-				setWinsize(spty, win.Width, win.Height)
-			}
-		}()
+		u := osauth.LookupUser(session.User())
 
-		go func() {
-			_, err := io.Copy(session, spty)
-			if err != nil {
-				logrus.Warn(err)
-			}
-		}()
+		uid, _ := strconv.Atoi(u.UID)
 
-		go func() {
-			_, err := io.Copy(spty, session)
-			if err != nil {
-				logrus.Warn(err)
-			}
-		}()
+		os.Chown(pts.Name(), uid, -1)
+
+		logrus.WithFields(logrus.Fields{
+			"user": session.User(),
+			"pty": pts.Name(),
+			"remoteaddr": session.RemoteAddr().String(),
+			"localaddr": session.LocalAddr().String(),
+			}).Info("Session started")
 
 		s.mu.Lock()
 		s.cmds[session.Context().Value(sshserver.ContextKeySessionID).(string)] = scmd
 		s.mu.Unlock()
 
-		err = scmd.Wait()
-		if err != nil {
+		if err := scmd.Wait(); err != nil {
 			logrus.Warn(err)
 		}
+
+		logrus.WithFields(logrus.Fields{
+			"user": session.User(),
+			"pty": pts.Name(),
+			"remoteaddr": session.RemoteAddr().String(),
+			"localaddr": session.LocalAddr().String(),
+			}).Info("Session ended")
 	} else {
 		u := osauth.LookupUser(session.User())
 		cmd := newCmd(u, "", "", s.deviceName, session.Command()...)
 
 		stdout, _ := cmd.StdoutPipe()
 		stdin, _ := cmd.StdinPipe()
+
+		logrus.WithFields(logrus.Fields{
+			"user": session.User(),
+			"remoteaddr": session.RemoteAddr().String(),
+			"localaddr": session.LocalAddr().String(),
+			"Raw command": session.RawCommand(),
+			}).Info("Command started")
 
 		cmd.Start()
 
@@ -168,21 +157,44 @@ func (s *SSHServer) sessionHandler(session sshserver.Session) {
 		}()
 
 		cmd.Wait()
+
+		logrus.WithFields(logrus.Fields{
+			"user": session.User(),
+			"remoteaddr": session.RemoteAddr().String(),
+			"localaddr": session.LocalAddr().String(),
+			"Raw command": session.RawCommand(),
+			}).Info("Command ended")
 	}
 }
 
-func (s *SSHServer) publicKeyHandler(_ sshserver.Context, _ sshserver.PublicKey) bool {
+func (s *Server) passwordHandler(ctx sshserver.Context, pass string) bool {
+	log := logrus.WithFields(logrus.Fields{
+		"user": ctx.User(),
+	})
+
+	ok := osauth.AuthUser(ctx.User(), pass)
+
+	if ok {
+		log.Info("Accepted password")
+	} else {
+		log.Info("Failed password")
+	}
+
+	return ok
+}
+
+func (s *Server) publicKeyHandler(_ sshserver.Context, _ sshserver.PublicKey) bool {
 	return true
 }
 
-func (s *SSHServer) CloseSession(id string) {
+func (s *Server) CloseSession(id string) {
 	if session, ok := s.Sessions[id]; ok {
 		session.Close()
 		delete(s.Sessions, id)
 	}
 }
 
-func newShellCmd(s *SSHServer, username, term string) *exec.Cmd {
+func newShellCmd(s *Server, username, term string) *exec.Cmd {
 	shell := os.Getenv("SHELL")
 
 	u := osauth.LookupUser(username)
@@ -198,9 +210,4 @@ func newShellCmd(s *SSHServer, username, term string) *exec.Cmd {
 	cmd := newCmd(u, shell, term, s.deviceName, shell, "--login")
 
 	return cmd
-}
-
-func setWinsize(f *os.File, w, h int) {
-	size := &struct{ h, w, x, y uint16 }{uint16(h), uint16(w), 0, 0}
-	syscall.Syscall(syscall.SYS_IOCTL, f.Fd(), uintptr(syscall.TIOCSWINSZ), uintptr(unsafe.Pointer(size)))
 }

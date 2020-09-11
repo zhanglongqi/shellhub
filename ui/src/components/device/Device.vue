@@ -10,6 +10,7 @@
         class="mx-6"
         single-line
         hide-details
+        data-test="search-text"
       />
       <v-spacer />
       <DeviceAdd />
@@ -55,13 +56,6 @@
       <v-divider />
 
       <router-view />
-
-      <v-snackbar
-        v-model="copySnack"
-        :timeout="3000"
-      >
-        Device SSHID copied to clipboard
-      </v-snackbar>
     </v-card>
   </fragment>
 </template>
@@ -79,7 +73,6 @@ export default {
 
   data() {
     return {
-      copySnack: false,
       search: '',
     };
   },
@@ -90,15 +83,41 @@ export default {
     },
   },
 
+  watch: {
+    search() {
+      this.getDevices();
+    },
+  },
+
   async created() {
     try {
       await this.$store.dispatch('stats/get');
     } catch {
-      this.$store.dispatch('modals/showSnackbarError', true);
+      this.$store.dispatch('modals/showSnackbarErrorDefault');
     }
   },
 
+  async destroyed() {
+    await this.$store.dispatch('devices/setFilter', null);
+  },
+
   methods: {
+    async getDevices() {
+      let encodedFilter = null;
+
+      if (this.search) {
+        const filter = [{ type: 'property', params: { name: 'name', operator: 'like', value: this.search } }];
+        encodedFilter = btoa(JSON.stringify(filter));
+      }
+      await this.$store.dispatch('devices/setFilter', encodedFilter);
+
+      try {
+        this.$store.dispatch('devices/refresh');
+      } catch {
+        this.$store.dispatch('modals/showSnackbarErrorDefault');
+      }
+    },
+
     formatSortObject(field, isDesc) {
       let formatedField = null;
       let formatedStatus = false;
@@ -121,10 +140,6 @@ export default {
         status: formatedStatus,
         statusString: ascOrDesc,
       };
-    },
-
-    showCopySnack() {
-      this.copySnack = true;
     },
   },
 };

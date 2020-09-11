@@ -193,11 +193,15 @@ func (s *Store) DeleteDevice(ctx context.Context, uid models.UID) error {
 		return err
 	}
 
-	return nil
+	_, err := s.db.Collection("connected_devices").DeleteMany(ctx, bson.M{"uid": uid})
+	return err
 }
 
-func (s *Store) AddDevice(ctx context.Context, d models.Device) error {
-	hostname := strings.Replace(d.Identity.MAC, ":", "-", -1)
+func (s *Store) AddDevice(ctx context.Context, d models.Device, hostname string) error {
+	mac := strings.Replace(d.Identity.MAC, ":", "-", -1)
+	if hostname == "" {
+		hostname = mac
+	}
 
 	q := bson.M{
 		"$setOnInsert": bson.M{
@@ -670,12 +674,17 @@ func (s *Store) GetUserByTenant(ctx context.Context, tenant string) (*models.Use
 	return user, nil
 }
 
-func (s *Store) GetDeviceByMac(ctx context.Context, mac, tenant string) (*models.Device, error) {
+func (s *Store) GetDeviceByMac(ctx context.Context, mac, tenant, status string) (*models.Device, error) {
 	device := new(models.Device)
-	if err := s.db.Collection("devices").FindOne(ctx, bson.M{"tenant_id": tenant, "identity": bson.M{"mac": mac}}).Decode(&device); err != nil {
-		return nil, err
+	if status != "" {
+		if err := s.db.Collection("devices").FindOne(ctx, bson.M{"tenant_id": tenant, "identity": bson.M{"mac": mac}, "status": status}).Decode(&device); err != nil {
+			return nil, err
+		}
+	} else {
+		if err := s.db.Collection("devices").FindOne(ctx, bson.M{"tenant_id": tenant, "identity": bson.M{"mac": mac}}).Decode(&device); err != nil {
+			return nil, err
+		}
 	}
-
 	return device, nil
 }
 
@@ -839,6 +848,38 @@ func (s *Store) GetRecord(ctx context.Context, uid models.UID) ([]models.Recorde
 	}
 	return sessionRecord, count, nil
 }
+func (s *Store) UpdateUID(ctx context.Context, oldUID models.UID, newUID models.UID) error {
+	_, err := s.db.Collection("sessions").UpdateMany(ctx, bson.M{"device_uid": oldUID}, bson.M{"$set": bson.M{"device_uid": newUID}})
+	return err
+}
+
+func (s *Store) UpdateUser(ctx context.Context, username, email, currentPassword, newPassword, tenant string) error {
+	user, err := s.GetUserByTenant(ctx, tenant)
+
+	if err != nil {
+		return err
+	}
+
+	if username != "" && username != user.Username {
+		if _, err := s.db.Collection("users").UpdateOne(ctx, bson.M{"tenant_id": tenant}, bson.M{"$set": bson.M{"username": username}}); err != nil {
+			return err
+		}
+	}
+
+	if email != "" && email != user.Email {
+		if _, err := s.db.Collection("users").UpdateOne(ctx, bson.M{"tenant_id": tenant}, bson.M{"$set": bson.M{"email": email}}); err != nil {
+			return err
+		}
+	}
+
+	if newPassword != "" && newPassword != currentPassword {
+		if _, err := s.db.Collection("users").UpdateOne(ctx, bson.M{"tenant_id": tenant}, bson.M{"$set": bson.M{"password": newPassword}}); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
 
 func buildFilterQuery(filters []models.Filter) ([]bson.M, error) {
 	var queryMatch []bson.M
@@ -895,6 +936,46 @@ func buildFilterQuery(filters []models.Filter) ([]bson.M, error) {
 	}
 
 	return queryMatch, nil
+}
+
+func (s *Store) ListUsers(ctx context.Context, pagination paginator.Query) ([]models.User, int, error) {
+	query := []bson.M{}
+
+	// Only match for the respective tenant if requested
+	if tenant := apicontext.TenantFromContext(ctx); tenant != nil {
+		query = append(query, bson.M{
+			"$match": bson.M{
+				"tenant_id": tenant.ID,
+			},
+		})
+	}
+
+	queryCount := append(query, bson.M{"$count": "count"})
+	count, err := aggregateCount(ctx, s.db.Collection("users"), queryCount)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	query = append(query, buildPaginationQuery(pagination)...)
+
+	users := make([]models.User, 0)
+	cursor, err := s.db.Collection("users").Aggregate(ctx, query)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer cursor.Close(ctx)
+
+	for cursor.Next(ctx) {
+		user := new(models.User)
+		err = cursor.Decode(&user)
+		if err != nil {
+			return users, count, err
+		}
+
+		users = append(users, *user)
+	}
+
+	return users, count, err
 }
 
 func buildPaginationQuery(pagination paginator.Query) []bson.M {

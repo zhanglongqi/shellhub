@@ -9,7 +9,6 @@
         :footer-props="{'items-per-page-options': [10, 25, 50, 100]}"
         :server-items-length="getNumberPendingDevices"
         :options.sync="pagination"
-        :search="search"
       >
         <template slot="no-data">
           There are no more pending devices
@@ -50,9 +49,9 @@
 
 <script>
 
-import DeviceIcon from '@/components/device//DeviceIcon';
+import DeviceIcon from '@/components/device/DeviceIcon';
 import DeviceActionButton from '@/components/device/DeviceActionButton';
-import formatOrdering from '@/components/device//Device';
+import formatOrdering from '@/components/device/Device';
 
 export default {
   name: 'DeviceList',
@@ -67,8 +66,6 @@ export default {
   data() {
     return {
       pagination: {},
-      copySnack: false,
-      search: '',
       headers: [
         {
           text: 'Hostname',
@@ -114,29 +111,18 @@ export default {
       },
       deep: true,
     },
-
-    search() {
-      this.getPendingDevices();
-    },
   },
 
   methods: {
     async getPendingDevices() {
-      let filter = null;
-      let encodedFilter = null;
       let sortStatusMap = {};
-
-      if (this.search) {
-        filter = [{ type: 'property', params: { name: 'name', operator: 'like', value: this.search } }];
-        encodedFilter = btoa(JSON.stringify(filter));
-      }
 
       sortStatusMap = this.formatSortObject(this.pagination.sortBy[0], this.pagination.sortDesc[0]);
 
       const data = {
         perPage: this.pagination.itemsPerPage,
         page: this.pagination.page,
-        filter: encodedFilter,
+        filter: this.$store.getters['devices/getFilter'],
         status: 'pending',
         sortStatusField: sortStatusMap.field,
         sortStatusString: sortStatusMap.statusString,
@@ -145,7 +131,7 @@ export default {
       try {
         await this.$store.dispatch('devices/fetch', data);
       } catch {
-        this.$store.dispatch('modals/showSnackbarError', true);
+        this.$store.dispatch('modals/showSnackbarErrorLoading', this.$errors.deviceListPending);
       }
     },
 

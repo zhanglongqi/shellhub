@@ -30,7 +30,10 @@
           <v-spacer />
         </v-toolbar>
 
-        <v-form @submit.prevent="login()">
+        <v-form
+          @submit.prevent="login()"
+          @keyup.native.enter="submit"
+        >
           <v-card-text>
             <v-text-field
               v-model="username"
@@ -38,7 +41,7 @@
               prepend-icon="person"
               label="Username"
               type="text"
-              data-cy="username-text"
+              data-test="username-text"
             />
             <v-text-field
               id="password"
@@ -47,7 +50,7 @@
               prepend-icon="lock"
               label="Password"
               type="password"
-              data-cy="password-text"
+              data-test="password-text"
             />
           </v-card-text>
 
@@ -56,7 +59,7 @@
             <v-btn
               type="submit"
               color="primary"
-              data-cy="login-btn"
+              data-test="login-btn"
             >
               Submit
             </v-btn>
@@ -64,10 +67,6 @@
         </v-form>
       </v-card>
     </v-flex>
-
-    <SnackbarError
-      :error="error"
-    />
   </v-layout>
 </template>
 
@@ -108,7 +107,7 @@ export default {
           this.$router.push('/');
         }
       } catch {
-        this.error = true;
+        this.$store.dispatch('modals/showSnackbarErrorDefault');
       }
     },
   },

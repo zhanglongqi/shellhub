@@ -32,6 +32,7 @@ type ConfigOptions struct {
 	PrivateKey        string `envconfig:"private_key"`
 	TenantID          string `envconfig:"tenant_id"`
 	KeepAliveInterval int    `envconfig:"keepalive_interval" default:"30"`
+	PreferredHostname string `envconfig:"preferred_hostname"`
 }
 
 type Information struct {
@@ -41,8 +42,12 @@ type Information struct {
 func main() {
 	opts := ConfigOptions{}
 
-	err := envconfig.Process("", &opts)
-	if err != nil {
+	// Process unprefixed env vars for backward compatibility
+	if err := envconfig.Process("", &opts); err != nil {
+		logrus.Panic(err)
+	}
+
+	if err := envconfig.Process("shellhub", &opts); err != nil {
 		logrus.Panic(err)
 	}
 
@@ -99,6 +104,7 @@ func main() {
 		Info:     agent.Info,
 		Sessions: []string{},
 		DeviceAuth: &models.DeviceAuth{
+			Hostname:  opts.PreferredHostname,
 			Identity:  agent.Identity,
 			TenantID:  opts.TenantID,
 			PublicKey: string(keygen.EncodePublicKeyToPem(agent.pubKey)),
@@ -113,7 +119,7 @@ func main() {
 		return
 	}
 
-	server := sshd.NewSSHServer(opts.PrivateKey, opts.KeepAliveInterval)
+	server := sshd.NewServer(opts.PrivateKey, opts.KeepAliveInterval)
 
 	router := mux.NewRouter()
 	router.HandleFunc("/ssh/{id}", func(w http.ResponseWriter, r *http.Request) {
@@ -143,6 +149,14 @@ func main() {
 				time.Sleep(time.Second * 10)
 				continue
 			}
+
+			logrus.WithFields(logrus.Fields{
+				"namespace":      auth.Namespace,
+				"hostname":       auth.Name,
+				"server_address": opts.ServerAddress,
+				"ssh_server":     info.Endpoints.SSH,
+				"sshid":          auth.Namespace + "." + auth.Name + "@" + strings.Split(info.Endpoints.SSH, ":")[0],
+			}).Info("Server connection established")
 
 			if err := sv.Serve(listener); err != nil {
 				continue
@@ -184,6 +198,7 @@ func main() {
 			Info:     agent.Info,
 			Sessions: sessions,
 			DeviceAuth: &models.DeviceAuth{
+				Hostname:  opts.PreferredHostname,
 				Identity:  agent.Identity,
 				TenantID:  opts.TenantID,
 				PublicKey: string(keygen.EncodePublicKeyToPem(agent.pubKey)),

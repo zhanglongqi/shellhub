@@ -239,13 +239,23 @@ export default {
     },
 
     async create() {
-      await this.$store.dispatch('firewallrules/post', this.ruleFirewallLocal);
-      this.update();
+      try {
+        await this.$store.dispatch('firewallrules/post', this.ruleFirewallLocal);
+        this.$store.dispatch('modals/showSnackbarSuccessAction', this.$success.firewallRuleCreating);
+        this.update();
+      } catch {
+        this.$store.dispatch('modals/showSnackbarErrorAction', this.$errors.firewallRuleCreating);
+      }
     },
 
     async edit() {
-      await this.$store.dispatch('firewallrules/put', this.ruleFirewallLocal);
-      this.update();
+      try {
+        await this.$store.dispatch('firewallrules/put', this.ruleFirewallLocal);
+        this.$store.dispatch('modals/showSnackbarSuccessAction', this.$success.firewallRuleEditing);
+        this.update();
+      } catch {
+        this.$store.dispatch('modals/showSnackbarErrorAction', this.$errors.firewallRuleEditing);
+      }
     },
 
     update() {

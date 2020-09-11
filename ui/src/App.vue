@@ -95,7 +95,9 @@
                   </span>
                   <v-icon
                     v-clipboard="tenant"
-                    v-clipboard:success="() => { copySnack = true; }"
+                    v-clipboard:success="() => {
+                      this.$store.dispatch('modals/showSnackbarCopy', this.$copy.tenantId);
+                    }"
                     right
                   >
                     mdi-content-copy
@@ -111,7 +113,6 @@
             v-for="(item, index) in menu"
             :key="index"
             router
-            :to="item.path"
             @click.prevent="triggerClick(item)"
           >
             <v-list-item-title>
@@ -128,14 +129,8 @@
       >
         <router-view :key="$route.fullPath" />
       </v-container>
-      <v-snackbar
-        v-model="copySnack"
-        :timeout="3000"
-      >
-        Tenant ID copied to clipboard
-      </v-snackbar>
 
-      <snackbarError />
+      <snackbar />
     </v-main>
   </v-app>
 </template>
@@ -155,7 +150,6 @@ export default {
     return {
       drawer: true,
       clipped: false,
-      copySnack: false,
       items: [
         {
           icon: 'dashboard',
@@ -166,11 +160,6 @@ export default {
           icon: 'devices',
           title: 'Devices',
           path: '/devices',
-          items: [
-            { title: 'List Devices', path: '/devices' },
-            { title: 'Pending Devices', path: '/devices/pending' },
-            { title: 'Reject Devices' },
-          ],
         },
         {
           icon: 'history',
@@ -185,6 +174,12 @@ export default {
         },
       ],
       menu: [
+        {
+          title: 'Settings',
+          type: 'path',
+          path: '/settings',
+          items: [{ title: 'Profile', path: '/settings/profile' }],
+        },
         {
           title: 'Logout',
           type: 'method',
@@ -221,7 +216,7 @@ export default {
     triggerClick(item) {
       switch (item.type) {
       case 'path':
-        this.$router.push(item.path);
+        this.$router.push(item.path).catch(() => {});
         break;
       case 'method':
         this[item.method]();
@@ -229,10 +224,6 @@ export default {
       default:
         break;
       }
-    },
-    redirect(path) {
-      // eslint-disable-next-line no-console
-      this.$router.push(path);
     },
   },
 };

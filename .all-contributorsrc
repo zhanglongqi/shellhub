@@ -1,0 +1,106 @@
+{
+  "files": [
+    "README.md"
+  ],
+  "imageSize": 100,
+  "commit": false,
+  "badgeTemplate": "<a href=\"#contributors-\"><img src=\"https://img.shields.io/badge/all_contributors-<%= contributors.length %>-orange.svg?style=flat-square\"></a>",
+  "contributors": [
+    {
+      "login": "gustavosbarreto",
+      "name": "Luis Gustavo S. Barreto",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/86747?v=4",
+      "profile": "https://github.com/gustavosbarreto",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "otavio",
+      "name": "Otavio Salvador",
+      "avatar_url": "https://avatars0.githubusercontent.com/u/25278?v=4",
+      "profile": "http://www.ossystems.com.br/blog",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "leonardojoao",
+      "name": "Leonardo da Rosa Silveira João",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/15831786?v=4",
+      "profile": "https://github.com/leonardojoao",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "eduardoveiga",
+      "name": "Eduardo Kluwe Veiga",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/8249343?v=4",
+      "profile": "https://github.com/eduardoveiga",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "noreng-jg",
+      "name": "Vagner Nornberg",
+      "avatar_url": "https://avatars2.githubusercontent.com/u/25461720?v=4",
+      "profile": "https://github.com/noreng-jg",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "fbertux",
+      "name": "Fabio Berton",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/2940537?v=4",
+      "profile": "https://github.com/fbertux",
+      "contributions": [
+        "platform"
+      ]
+    },
+    {
+      "login": "gomex",
+      "name": "Rafael Gomes",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/95132?v=4",
+      "profile": "http://gomex.me",
+      "contributions": [
+        "infra"
+      ]
+    },
+    {
+      "login": "sixhills",
+      "name": "Mike",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/69159771?v=4",
+      "profile": "https://github.com/sixhills",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "inductor",
+      "name": "inductor(Kohei)",
+      "avatar_url": "https://avatars0.githubusercontent.com/u/20236173?v=4",
+      "profile": "https://inductor.me",
+      "contributions": [
+        "infra"
+      ]
+    },
+    {
+      "login": "u5surf",
+      "name": "Y.Horie",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/14180225?v=4",
+      "profile": "https://github.com/u5surf",
+      "contributions": [
+        "code"
+      ]
+    }
+  ],
+  "contributorsPerLine": 7,
+  "projectName": "shellhub",
+  "projectOwner": "shellhub-io",
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "skipCi": true
+}

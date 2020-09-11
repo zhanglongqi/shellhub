@@ -80,9 +80,10 @@ export default {
           this.$router.push('/devices');
         }
 
+        this.$store.dispatch('modals/showSnackbarSuccessAction', this.$success.deviceDelete);
         this.$emit('update');
       } catch {
-        this.$store.dispatch('modals/showSnackbarError', true);
+        this.$store.dispatch('modals/showSnackbarErrorAction', this.$errors.deviceDelete);
       }
     },
   },

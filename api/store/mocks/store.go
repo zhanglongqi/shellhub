@@ -16,13 +16,13 @@ type Store struct {
 	mock.Mock
 }
 
-// AddDevice provides a mock function with given fields: ctx, d
-func (_m *Store) AddDevice(ctx context.Context, d models.Device) error {
-	ret := _m.Called(ctx, d)
+// AddDevice provides a mock function with given fields: ctx, d, hostname
+func (_m *Store) AddDevice(ctx context.Context, d models.Device, hostname string) error {
+	ret := _m.Called(ctx, d, hostname)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.Device) error); ok {
-		r0 = rf(ctx, d)
+	if rf, ok := ret.Get(0).(func(context.Context, models.Device, string) error); ok {
+		r0 = rf(ctx, d, hostname)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -132,13 +132,13 @@ func (_m *Store) GetDevice(ctx context.Context, uid models.UID) (*models.Device,
 	return r0, r1
 }
 
-// GetDeviceByMac provides a mock function with given fields: ctx, mac, tenant
-func (_m *Store) GetDeviceByMac(ctx context.Context, mac string, tenant string) (*models.Device, error) {
-	ret := _m.Called(ctx, mac, tenant)
+// GetDeviceByMac provides a mock function with given fields: ctx, mac, tenant, status
+func (_m *Store) GetDeviceByMac(ctx context.Context, mac string, tenant string, status string) (*models.Device, error) {
+	ret := _m.Called(ctx, mac, tenant, status)
 
 	var r0 *models.Device
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) *models.Device); ok {
-		r0 = rf(ctx, mac, tenant)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) *models.Device); ok {
+		r0 = rf(ctx, mac, tenant, status)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.Device)
@@ -146,8 +146,8 @@ func (_m *Store) GetDeviceByMac(ctx context.Context, mac string, tenant string) 
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = rf(ctx, mac, tenant)
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, string) error); ok {
+		r1 = rf(ctx, mac, tenant, status)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -473,6 +473,36 @@ func (_m *Store) ListSessions(ctx context.Context, pagination paginator.Query) (
 	return r0, r1, r2
 }
 
+// ListUsers provides a mock function with given fields: ctx, pagination
+func (_m *Store) ListUsers(ctx context.Context, pagination paginator.Query) ([]models.User, int, error) {
+	ret := _m.Called(ctx, pagination)
+
+	var r0 []models.User
+	if rf, ok := ret.Get(0).(func(context.Context, paginator.Query) []models.User); ok {
+		r0 = rf(ctx, pagination)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]models.User)
+		}
+	}
+
+	var r1 int
+	if rf, ok := ret.Get(1).(func(context.Context, paginator.Query) int); ok {
+		r1 = rf(ctx, pagination)
+	} else {
+		r1 = ret.Get(1).(int)
+	}
+
+	var r2 error
+	if rf, ok := ret.Get(2).(func(context.Context, paginator.Query) error); ok {
+		r2 = rf(ctx, pagination)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
+}
+
 // LookupDevice provides a mock function with given fields: ctx, namespace, name
 func (_m *Store) LookupDevice(ctx context.Context, namespace string, name string) (*models.Device, error) {
 	ret := _m.Called(ctx, namespace, name)
@@ -582,6 +612,34 @@ func (_m *Store) UpdatePendingStatus(ctx context.Context, uid models.UID, status
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, models.UID, string) error); ok {
 		r0 = rf(ctx, uid, status)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// UpdateUID provides a mock function with given fields: ctx, oldUID, newUID
+func (_m *Store) UpdateUID(ctx context.Context, oldUID models.UID, newUID models.UID) error {
+	ret := _m.Called(ctx, oldUID, newUID)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, models.UID, models.UID) error); ok {
+		r0 = rf(ctx, oldUID, newUID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// UpdateUser provides a mock function with given fields: ctx, username, email, currentPassword, newPassword, tenant
+func (_m *Store) UpdateUser(ctx context.Context, username string, email string, currentPassword string, newPassword string, tenant string) error {
+	ret := _m.Called(ctx, username, email, currentPassword, newPassword, tenant)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, string, string) error); ok {
+		r0 = rf(ctx, username, email, currentPassword, newPassword, tenant)
 	} else {
 		r0 = ret.Error(0)
 	}

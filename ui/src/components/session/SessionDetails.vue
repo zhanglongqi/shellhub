@@ -59,18 +59,28 @@
           <div class="overline">
             Uid
           </div>
-          <div>{{ session.uid }}</div>
+          <div
+            data-test="sessionUid-field"
+          >
+            {{ session.uid }}
+          </div>
         </div>
 
         <div class="mt-2">
           <div class="overline">
             User
           </div>
-          <div>{{ session.username }}</div>
+          <div
+            data-test="sessionUser-field"
+          >
+            {{ session.username }}
+          </div>
         </div>
 
         <div class="mt-2">
-          <div class="overline">
+          <div
+            class="overline"
+          >
             Authenticated
           </div>
           <v-tooltip bottom>
@@ -104,30 +114,35 @@
           <div class="overline">
             Ip Address
           </div>
-          <code>{{ session.ip_address }}</code>
+          <code
+            data-test="sessionIpAddress-field"
+          >
+            {{ session.ip_address }}
+          </code>
         </div>
 
         <div class="mt-2">
           <div class="overline">
             Started
           </div>
-          <div>{{ convertDate(session.started_at) }}</div>
+          <div
+            data-test="sessionStartedAt-field"
+          >
+            {{ convertDate(session.started_at) }}
+          </div>
         </div>
 
         <div class="mt-2">
           <div class="overline">
             Last Seen
           </div>
-          <div>{{ convertDate(session.last_seen) }}</div>
+          <div
+            data-test="sessionLastSeen-field"
+          >
+            {{ convertDate(session.last_seen) }}
+          </div>
         </div>
       </v-card-text>
-
-      <v-snackbar
-        v-model="closeSessionSnack"
-        :timeout="3000"
-      >
-        Closed session conection to the device
-      </v-snackbar>
     </v-card>
 
     <div class="text-center">
@@ -180,7 +195,6 @@ export default {
     return {
       uid: '',
       session: null,
-      closeSessionSnack: false,
       dialog: false,
       hide: true,
     };
@@ -200,6 +214,7 @@ export default {
     } catch (error) {
       this.hide = false;
       this.dialog = true;
+      this.$store.dispatch('modals/showSnackbarErrorLoading', this.$errors.sessionDetails);
     }
   },
 
@@ -210,9 +225,12 @@ export default {
     },
 
     async refresh() {
-      this.closeSessionSnack = true;
-      await this.$store.dispatch('sessions/get', this.uid);
-      this.session = this.$store.getters['sessions/get'];
+      try {
+        await this.$store.dispatch('sessions/get', this.uid);
+        this.session = this.$store.getters['sessions/get'];
+      } catch {
+        this.$store.dispatch('modals/showSnackbarErrorLoading', this.$errors.sessionDetails);
+      }
     },
 
     convertDate(date) {

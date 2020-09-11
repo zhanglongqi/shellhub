@@ -31,6 +31,7 @@
           dense
           append-icon="mdi-content-copy"
           :value="command()"
+          data-test="command-field"
           @click:append="copyCommand"
         />
 
@@ -54,13 +55,6 @@
           Close
         </v-btn>
       </v-card-actions>
-
-      <v-snackbar
-        v-model="copySnack"
-        :timeout="3000"
-      >
-        Command copied to clipboard
-      </v-snackbar>
     </v-card>
   </v-dialog>
 </template>
@@ -74,7 +68,6 @@ export default {
     return {
       hostname: window.location.hostname,
       port: window.location.port,
-      copySnack: false,
     };
   },
 
@@ -104,7 +97,7 @@ export default {
 
     copyCommand() {
       this.$clipboard(this.command());
-      this.copySnack = true;
+      this.$store.dispatch('modals/showSnackbarCopy', this.$copy.command);
     },
   },
 };
