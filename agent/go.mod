@@ -20,7 +20,7 @@ require (
 	github.com/gorilla/websocket v1.4.2
 	github.com/hashicorp/go-retryablehttp v0.6.6 // indirect
 	github.com/kelseyhightower/envconfig v1.4.0
-	github.com/mattn/go-shellwords v1.0.10
+	github.com/mattn/go-shellwords v1.0.11
 	github.com/morikuni/aec v1.0.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.0.1 // indirect
@@ -35,6 +35,7 @@ require (
 	golang.org/x/time v0.0.0-20200416051211-89c76fbcd5d1 // indirect
 	google.golang.org/genproto v0.0.0-20200612171551-7676ae05be11 // indirect
 	google.golang.org/grpc v1.29.1 // indirect
+	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 	gotest.tools v2.2.0+incompatible // indirect
 	moul.io/http2curl v1.0.0 // indirect
 )
